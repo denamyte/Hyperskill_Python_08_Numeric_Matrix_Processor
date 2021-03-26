@@ -221,6 +221,15 @@ files:
   text: |
     print('Hello, world!')
   learner_created: false
+- name: processor/user_io.py
+  visible: true
+  learner_created: true
+- name: processor/mtx_op.py
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/96/stages/528/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Fri, 26 Mar 2021 01:14:00 UTC
 record: -1

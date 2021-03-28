@@ -10,13 +10,18 @@ class UserIO:
         self.main()
 
     def main(self):
-        self.stage1()
+        self.stage2()
         print(self.result)
 
     def stage1(self):
         mtx_ar = [self.input_matrix() for _ in range(2)]
         self.result = 'ERROR' if not MtxOp.can_add_matrices(*mtx_ar) \
             else self.mtx_to_str_i(MtxOp.sum_of_matrices(*mtx_ar))
+
+    def stage2(self):
+        mtx = self.input_matrix()
+        scalar = int(input())
+        self.result = self.mtx_to_str_i(MtxOp.mutiply_matrix_by_scalar(mtx, scalar))
 
     def input_matrix(self) -> Mtx2D:
         lines = self.read_int_row()[0]

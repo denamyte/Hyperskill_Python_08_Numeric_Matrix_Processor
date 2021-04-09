@@ -18,5 +18,5 @@ class MtxOp:
         return [[a + b for (a, b) in zip(row1, row2)] for (row1, row2) in zip(m1, m2)]
 
     @staticmethod
-    def mutiply_matrix_by_scalar(m: Mtx2D, scalar: float) -> Mtx2D:
+    def multiply_matrix_by_scalar(m: Mtx2D, scalar: float) -> Mtx2D:
         return [[x * scalar for x in row] for row in m]

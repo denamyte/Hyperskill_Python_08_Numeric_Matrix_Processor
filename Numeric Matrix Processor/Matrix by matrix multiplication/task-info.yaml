@@ -347,5 +347,8 @@ files:
             return [[x * scalar for x in row] for row in m]
   learner_created: true
 feedback_link: https://hyperskill.org/projects/96/stages/530/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Sun, 11 Apr 2021 00:23:24 UTC
 record: -1

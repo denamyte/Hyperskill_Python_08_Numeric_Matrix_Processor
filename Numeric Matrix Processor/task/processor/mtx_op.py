@@ -33,6 +33,19 @@ class MtxOp:
                 for m1_row in m1]
 
     @staticmethod
+    def side_diagonal_reflection(m: Mtx2D) -> Mtx2D:
+        m = MtxOp.vert_line_reflection(m)
+        m = MtxOp.main_diagonal_reflection(m)
+        return MtxOp.vert_line_reflection(m)
+
+    @staticmethod
     def main_diagonal_reflection(m: Mtx2D) -> Mtx2D:
         return [[m[row_i][col_i] for row_i in range(len(m))] for col_i in range(len(m[0]))]
 
+    @staticmethod
+    def vert_line_reflection(m: Mtx2D) -> Mtx2D:
+        return [row[::-1] for row in m]
+
+    @staticmethod
+    def horz_line_reflection(m: Mtx2D) -> Mtx2D:
+        return m[::-1]

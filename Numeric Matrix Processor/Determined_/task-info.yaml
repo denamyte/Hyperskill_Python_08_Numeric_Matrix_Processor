@@ -672,6 +672,12 @@ files:
         def horz_line_reflection(m: Mtx2D) -> Mtx2D:
             return m[::-1]
   learner_created: true
+- name: processor/mtx_view.py
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/96/stages/532/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Sun, 25 Apr 2021 00:47:37 UTC
 record: -1

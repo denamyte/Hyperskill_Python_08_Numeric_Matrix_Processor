@@ -1,6 +1,6 @@
 from typing import List, Dict, Callable, Tuple
 from mtx_op import MtxOp, Mtx2D
-
+from mtx_view import MatrixView
 
 FChoice = Callable[[], None]
 FTranspose = Callable[[Mtx2D], Mtx2D]
@@ -13,14 +13,15 @@ class UserIO:
 
     def __init__(self):
         self.result: str = ''
-        self.main_choice_fun_dic: Dict[int, FChoice] = {
+        self.main_choice_fn_dic: Dict[int, FChoice] = {
             0: lambda: None,
             1: self.add_matrices,
             2: self.multiply_matrix_by_scalar,
             3: self.multiply_matrices,
             4: self.transpose_matrices,
+            5: self.calculate_determinant,
         }
-        self.trans_choice_fun_dic: Dict[int, FTranspose] = {
+        self.trans_choice_fn_dic: Dict[int, FTranspose] = {
             1: MtxOp.main_diagonal_reflection,
             2: MtxOp.side_diagonal_reflection,
             3: MtxOp.vert_line_reflection,
@@ -36,7 +37,7 @@ class UserIO:
             if self.result:
                 print(self.result, end='\n\n')
             choice = self.input_main_choice()
-            self.main_choice_fun_dic.get(choice, UserIO.default_choice)()
+            self.main_choice_fn_dic.get(choice, UserIO.default_choice)()
 
     @staticmethod
     def input_main_choice() -> int:
@@ -45,6 +46,7 @@ class UserIO:
 2. Multiply matrix by a constant
 3. Multiply matrices
 4. Transpose matrix
+5. Calculate a determinant
 0. Exit
 Your choice: '''))
 
@@ -76,8 +78,13 @@ Your choice: '''))
     def transpose_matrices(self):
         t_choice = self.input_transpose_choice()
         self.result = self.mtx_to_str(
-            self.trans_choice_fun_dic.get(t_choice)(self.input_matrix())
+            self.trans_choice_fn_dic.get(t_choice)(self.input_matrix())
         )
+
+    def calculate_determinant(self):
+        m = self.input_matrix()
+        self.result = UserIO.err_msg if len(m) != len(m[0]) \
+            else (int if self.mtx_is_int else float)(MatrixView(m).determinant())
 
     @staticmethod
     def is_int(m: Mtx2D) -> bool:

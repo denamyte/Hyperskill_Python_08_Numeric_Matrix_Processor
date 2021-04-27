@@ -9,7 +9,9 @@ class MatrixView:
     particular rows and columns means that only those rows and columns
     of the matrix will be used in calculations.
 
-    The class allows to calculate the determinant of a matrix.
+    The class allows to calculate:
+    1) the determinant of a matrix;
+    2) the cofactors matrix of a matrix.
     """
 
     def __init__(self, mtx: Mtx2D, rows: List[int] = None, cols: List[int] = None):

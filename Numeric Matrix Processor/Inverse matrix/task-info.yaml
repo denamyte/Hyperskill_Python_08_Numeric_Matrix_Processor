@@ -566,6 +566,237 @@ files:
     if __name__ == '__main__':
         CalcTest("processor.processor").run_tests()
   learner_created: false
+- name: processor/user_io.py
+  visible: true
+  text: |
+    from typing import List, Dict, Callable, Tuple
+    from mtx_op import MtxOp, Mtx2D
+    from mtx_view import MatrixView
+
+    FChoice = Callable[[], None]
+    FTranspose = Callable[[Mtx2D], Mtx2D]
+
+
+    class UserIO:
+        """ Input different matrix data and output the results of matrix operations """
+        err_msg = 'The operation cannot be performed.'
+        default_choice: FChoice = lambda: print(UserIO.err_msg)
+
+        def __init__(self):
+            self.result: str = ''
+            self.main_choice_fn_dic: Dict[int, FChoice] = {
+                0: lambda: None,
+                1: self.add_matrices,
+                2: self.multiply_matrix_by_scalar,
+                3: self.multiply_matrices,
+                4: self.transpose_matrices,
+                5: self.calculate_determinant,
+            }
+            self.trans_choice_fn_dic: Dict[int, FTranspose] = {
+                1: MtxOp.main_diagonal_reflection,
+                2: MtxOp.side_diagonal_reflection,
+                3: MtxOp.vert_line_reflection,
+                4: MtxOp.horz_line_reflection,
+            }
+            self.mtx_is_int = True
+            self.main()
+
+        def main(self):
+            choice = -1
+            while choice != 0:
+                self.mtx_is_int = True
+                if self.result:
+                    print(self.result, end='\n\n')
+                choice = self.input_main_choice()
+                self.main_choice_fn_dic.get(choice, UserIO.default_choice)()
+
+        @staticmethod
+        def input_main_choice() -> int:
+            return int(input('''\
+    1. Add matrices
+    2. Multiply matrix by a constant
+    3. Multiply matrices
+    4. Transpose matrix
+    5. Calculate a determinant
+    0. Exit
+    Your choice: '''))
+
+        @staticmethod
+        def input_transpose_choice() -> int:
+            return int(input('''
+    1. Main diagonal
+    2. Side diagonal
+    3. Vertical line
+    4. Horizontal line
+    Your choice: '''))
+
+        def add_matrices(self):
+            matrices = self.input_2_matrices()
+            self.result = UserIO.err_msg if not MtxOp.can_add_matrices(*matrices) \
+                else self.mtx_to_str(MtxOp.sum_of_matrices(*matrices))
+
+        def multiply_matrix_by_scalar(self):
+            m = self.input_matrix()
+            scalar = self.input_constant()
+            self.mtx_is_int = self.mtx_is_int and scalar.is_integer()
+            self.result = self.mtx_to_str(MtxOp.multiply_matrix_by_scalar(m, scalar))
+
+        def multiply_matrices(self):
+            matrices = self.input_2_matrices()
+            self.result = UserIO.err_msg if not MtxOp.can_multiply_matrix_by_matrix(*matrices) \
+                else self.mtx_to_str(MtxOp.multiply_matrix_by_matrix(*matrices))
+
+        def transpose_matrices(self):
+            t_choice = self.input_transpose_choice()
+            self.result = self.mtx_to_str(
+                self.trans_choice_fn_dic.get(t_choice)(self.input_matrix())
+            )
+
+        def calculate_determinant(self):
+            m = self.input_matrix()
+            self.result = UserIO.err_msg if len(m) != len(m[0]) \
+                else (int if self.mtx_is_int else float)(MatrixView(m).determinant())
+
+        @staticmethod
+        def is_int(m: Mtx2D) -> bool:
+            return all(all(x.is_integer() for x in row) for row in m)
+
+        def input_2_matrices(self) -> Tuple[Mtx2D, Mtx2D]:
+            return self.input_matrix('first '), self.input_matrix('second '),
+
+        def input_matrix(self, mtx_ord='') -> Mtx2D:
+            lines = self.input_int_row(mtx_ord)[0]
+            print(f'Enter {mtx_ord}matrix:')
+            m = [list(map(float, input().split(' '))) for _ in range(lines)]
+            self.mtx_is_int = self.mtx_is_int and self.is_int(m)
+            return m
+
+        def input_int_row(self, mtx_ord='') -> List[int]:
+            return list(map(int, input(f'Enter size of {mtx_ord}matrix: ').split(' ')))
+
+        def input_constant(self) -> float:
+            return float(input('Enter constant: '))
+
+        def mtx_to_str(self, m: Mtx2D) -> str:
+            """ Convert a matrix to a string representation"""
+            num_map_fn = int if self.mtx_is_int else float
+            return 'The result is:\n' + '\n'.join(' '.join(map(str, map(lambda x: round(x, 2), map(num_map_fn, row))))
+                                                  for row in m)
+  learner_created: true
+- name: processor/mtx_op.py
+  visible: true
+  text: |
+    from typing import List
+
+    Mtx2D = List[List[float]]
+
+
+    class MtxOp:
+        """
+        Check if an operation can be performed on matrices,
+        perform different matrix operations.
+        """
+
+        @staticmethod
+        def can_add_matrices(m1: Mtx2D, m2: Mtx2D) -> bool:
+            return len(m1) > 0 and len(m1) == len(m2) and len(m1[0]) == len(m2[0])
+
+        @staticmethod
+        def sum_of_matrices(m1: Mtx2D, m2: Mtx2D) -> Mtx2D:
+            return [[a + b for (a, b) in zip(row1, row2)] for (row1, row2) in zip(m1, m2)]
+
+        @staticmethod
+        def multiply_matrix_by_scalar(m: Mtx2D, scalar: float) -> Mtx2D:
+            return [[x * scalar for x in row] for row in m]
+
+        @staticmethod
+        def can_multiply_matrix_by_matrix(m1: Mtx2D, m2: Mtx2D) -> bool:
+            return len(m1) > 0 and len(m1[0]) > 0 and len(m1[0]) == len(m2)
+
+        @staticmethod
+        def multiply_matrix_by_matrix(m1: Mtx2D, m2: Mtx2D) -> Mtx2D:
+            m2_dr = MtxOp.main_diagonal_reflection(m2)
+            # a row of m1 gets multiplied by every row of m2_dr, the result is a new matrix row
+            return [[sum(v1 * v2 for v1, v2 in zip(m2_dr[m2_row_ind], m1_row)) for m2_row_ind in range(len(m2_dr))]
+                    for m1_row in m1]
+
+        @staticmethod
+        def side_diagonal_reflection(m: Mtx2D) -> Mtx2D:
+            m = MtxOp.vert_line_reflection(m)
+            m = MtxOp.main_diagonal_reflection(m)
+            return MtxOp.vert_line_reflection(m)
+
+        @staticmethod
+        def main_diagonal_reflection(m: Mtx2D) -> Mtx2D:
+            return [[m[row_i][col_i] for row_i in range(len(m))] for col_i in range(len(m[0]))]
+
+        @staticmethod
+        def vert_line_reflection(m: Mtx2D) -> Mtx2D:
+            return [row[::-1] for row in m]
+
+        @staticmethod
+        def horz_line_reflection(m: Mtx2D) -> Mtx2D:
+            return m[::-1]
+  learner_created: true
+- name: processor/mtx_view.py
+  visible: true
+  text: |
+    from typing import List
+    from mtx_op import Mtx2D
+
+
+    class MatrixView:
+        """
+        A special class containing a 2D matrix as well as information
+        about available rows and columns of the matrix. "Availability" of
+        particular rows and columns means that only those rows and columns
+        of the matrix will be used in calculations.
+
+        The class allows to calculate the determinant of a matrix.
+        """
+
+        def __init__(self, mtx: Mtx2D, rows: List[int] = None, cols: List[int] = None):
+            self.mtx = mtx
+            if rows and cols:
+                self.visible_rows = rows
+                self.visible_cols = cols
+            else:
+                self.visible_rows = list(range(len(mtx)))
+                self.visible_cols = list(range(len(mtx[0])))
+
+        def decrease_mtx_size(self, ex_row: int, ex_col: int):
+            """
+            Create an instance of MatrixView from an existing one, by taking away
+            one row and one column from the visible rows and columns
+            """
+            rows = self.visible_rows[:]
+            cols = self.visible_cols[:]
+            rows.remove(ex_row)
+            cols.remove(ex_col)
+            return MatrixView(self.mtx, rows, cols)
+
+        def determinant(self) -> float:
+            m, vr, vc = self.mtx, self.visible_rows, self.visible_cols
+            if len(vr) == 1:
+                return m[vr[0]][vc[0]]
+            if len(vr) == 2:  # [0][0] * [1][1] - [0][1] * [1][0]
+                return m[vr[0]][vc[0]] * m[vr[1]][vc[1]] - m[vr[0]][vc[1]] * m[vr[1]][vc[0]]
+
+            determ, sign, exclude_row = .0, 1, vr[0]
+            for exclude_col in vc:
+                cross_value = m[exclude_row][exclude_col]
+                if cross_value != 0:
+                    determ += sign * cross_value * self.decrease_mtx_size(exclude_row, exclude_col).determinant()
+                sign *= -1
+
+            return determ
+  learner_created: true
+- name: processor/mtx_2d.py
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/96/stages/533/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Tue, 27 Apr 2021 00:51:27 UTC
 record: -1

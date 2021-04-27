@@ -1,5 +1,5 @@
 from typing import List
-from mtx_op import Mtx2D
+from mtx_2d import Mtx2D
 
 
 class MatrixView:
@@ -32,6 +32,13 @@ class MatrixView:
         cols.remove(ex_col)
         return MatrixView(self.mtx, rows, cols)
 
+    def cofactors(self) -> Mtx2D:
+        def inner_calc(row: int, col: int):
+            sign = -1 if (row + col) % 2 else 1
+            return sign * self.decrease_mtx_size(row, col).determinant()
+
+        return [[inner_calc(row, col) for col in self.visible_cols] for row in self.visible_rows]
+
     def determinant(self) -> float:
         m, vr, vc = self.mtx, self.visible_rows, self.visible_cols
         if len(vr) == 1:
@@ -39,11 +46,11 @@ class MatrixView:
         if len(vr) == 2:  # [0][0] * [1][1] - [0][1] * [1][0]
             return m[vr[0]][vc[0]] * m[vr[1]][vc[1]] - m[vr[0]][vc[1]] * m[vr[1]][vc[0]]
 
-        determ, sign, exclude_row = .0, 1, vr[0]
+        det, sign, exclude_row = .0, 1, vr[0]
         for exclude_col in vc:
             cross_value = m[exclude_row][exclude_col]
             if cross_value != 0:
-                determ += sign * cross_value * self.decrease_mtx_size(exclude_row, exclude_col).determinant()
+                det += sign * cross_value * self.decrease_mtx_size(exclude_row, exclude_col).determinant()
             sign *= -1
 
-        return determ
+        return det
